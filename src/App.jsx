@@ -4,7 +4,7 @@ import { MockMobileScreen } from './components/MockMobileScreen'
 function App() {
   return (
     <>
-      <Leva />
+      <Leva collapsed />
       <MockMobileScreen />
     </>
   )

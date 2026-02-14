@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { folder, useControls } from 'leva';
 import { PullToRefresh } from './PullToRefresh';
 
@@ -61,6 +62,22 @@ function FakeCard() {
 }
 
 export function MockMobileScreen() {
+  const [handoffOpen, setHandoffOpen] = useState(false);
+  const [handoffContent, setHandoffContent] = useState('');
+  const [handoffLoading, setHandoffLoading] = useState(false);
+  const [handoffError, setHandoffError] = useState(null);
+
+  useEffect(() => {
+    if (!handoffOpen) return;
+    setHandoffLoading(true);
+    setHandoffError(null);
+    fetch('/HANDOFF-REACT-NATIVE.md')
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.statusText))))
+      .then(setHandoffContent)
+      .catch((e) => setHandoffError(e.message))
+      .finally(() => setHandoffLoading(false));
+  }, [handoffOpen]);
+
   const {
     pullThreshold,
     pullMaxPull,
@@ -135,18 +152,93 @@ export function MockMobileScreen() {
   const landingMassFinal = landingPresetVal ? landingPresetVal.mass : landingMass;
 
   return (
-    <div
-      style={{
-        maxWidth: 375,
-        minHeight: '100vh',
-        margin: '0 auto',
-        background: '#fafafa',
-        boxShadow: '0 0 0 1px #ddd, 0 20px 40px rgba(0,0,0,0.1)',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <PullToRefresh
+    <>
+      <button
+        type="button"
+        onClick={() => setHandoffOpen(true)}
+        style={{
+          position: 'fixed',
+          bottom: 16,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000,
+          padding: '8px 12px',
+          fontSize: 12,
+          background: '#fff',
+          border: '1px solid #ddd',
+          borderRadius: 8,
+          cursor: 'pointer',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+        }}
+      >
+        Для разработчика
+      </button>
+
+      {handoffOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Handoff для React Native"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1001,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+          }}
+          onClick={() => setHandoffOpen(false)}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              maxWidth: 560,
+              maxHeight: '85vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <strong>Handoff: React Native</strong>
+              <button
+                type="button"
+                onClick={() => setHandoffOpen(false)}
+                style={{ padding: '4px 12px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: 6, background: '#fff' }}
+              >
+                Закрыть
+              </button>
+            </div>
+            <div style={{ overflow: 'auto', flex: 1, padding: 16 }}>
+              {handoffLoading && <p style={{ margin: 0 }}>Загрузка…</p>}
+              {handoffError && <p style={{ margin: 0, color: '#c00' }}>Ошибка: {handoffError}</p>}
+              {!handoffLoading && !handoffError && handoffContent && (
+                <pre style={{ whiteSpace: 'pre-wrap', textAlign: 'left', margin: 0, fontSize: 12, fontFamily: 'inherit' }}>
+                  {handoffContent}
+                </pre>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div
+        style={{
+          maxWidth: 375,
+          minHeight: '100vh',
+          margin: '0 auto',
+          background: '#fafafa',
+          boxShadow: '0 0 0 1px #ddd, 0 20px 40px rgba(0,0,0,0.1)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <PullToRefresh
         pullThreshold={pullThreshold}
         pullMaxPull={pullMaxPull}
         logoGrowMax={logoGrowMax}
@@ -172,6 +264,7 @@ export function MockMobileScreen() {
           ))}
         </div>
       </PullToRefresh>
-    </div>
+      </div>
+    </>
   );
 }
